@@ -1,0 +1,36 @@
+name: Nova Strike Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: 'URL to download fixed index.html from'
+        required: true
+        type: string
+      target_path:
+        description: 'Path for the downloaded file'
+        required: false
+        default: 'index.html'
+        type: string
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download fixed HTML
+        run: |
+          mkdir -p $(dirname "${{ github.event.inputs.target_path }}")
+          curl -sS -o "${{ github.event.inputs.target_path }}" "${{ github.event.inputs.source_url }}"
+      - name: Verify download
+        run: |
+          if [ ! -s "${{ github.event.inputs.target_path }}" ]; then
+            echo 'ERROR: Downloaded file is empty'
+            exit 1
+          fi
+          echo "Downloaded $(wc -c < "${{ github.event.inputs.target_path }}") bytes"
+      - name: Commit and push
+        run: |
+          git config user.email "keywebco@users.noreply.github.com"
+          git config user.name "Keywebco Nova Strike"
+          git add -A
+          git commit -m "Nova Strike: Fix Gumroad URLs, remove .space refs, neutralize dead links (2026-08-23)"
+          git push
