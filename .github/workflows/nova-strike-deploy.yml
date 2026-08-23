@@ -11,11 +11,15 @@ on:
         required: false
         default: 'index.html'
         type: string
+permissions:
+  contents: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
       - name: Download fixed HTML
         run: |
           mkdir -p $(dirname "${{ github.event.inputs.target_path }}")
@@ -32,5 +36,6 @@ jobs:
           git config user.email "keywebco@users.noreply.github.com"
           git config user.name "Keywebco Nova Strike"
           git add -A
+          git diff --cached --quiet && echo 'No changes to commit' && exit 0
           git commit -m "Nova Strike: Fix Gumroad URLs, remove .space refs, neutralize dead links (2026-08-23)"
           git push
